@@ -1,9 +1,11 @@
+import sympy
 
 def lcm(a, b):
 	return a * b // gcd(a, b)
 
 def gcd(a, b):
 	return b if a % b == 0 else gcd(b, a % b)
+
 
 def minmum_coprime(a):
 	for p in primes():
@@ -12,13 +14,46 @@ def minmum_coprime(a):
 
 def primes(start=2, end=2**8+1):
 	i = start if start % 2 != 0 else start + 1
-	while True:
-		if i > end: return
-		for d in reversed(range(1, i)):
-			if (i) % d == 0:
+	while (i <= end):
+		for d in reversed(range(i)):
+			if i % d == 0:
 				break
 		if d < 2: yield i
 		i += 2
+
+def prime_factoring(n):
+	
+	# i = int(n**0.5) // 6 * 6 + 6
+	# while i != 6:
+	# 	if n % (i-1) == 0:
+	# 		return i-1
+	# 	if n % (i+1) == 0:
+	# 		return i+1
+	# 	i -= 6
+	
+	# if n % 2 == 0:
+	# 	return 2
+	# if n % 3 == 0:
+	# 	return 3
+
+	# check performance amoung use_trial, use_pm1 and use_rho
+	return sympy.factorint(n).items().__iter__().__next__()[0]
+
+	# i = int(n**0.5)
+	# i = i if i % 2 != 0 else i - 1
+	# while (n % i != 0):
+	# 	i -= 2
+	# return i
+
+	# k = int(n**0.5)
+	# i = 6
+	# while i < k:
+	# 	if n % (i-1) == 0:
+	# 		return i-1
+	# 	if n % (i+1) == 0:
+	# 		return i+1
+	# 	i += 6
+
 
 def extended_euclidean_algorithm(a, b):
 	q = a // b
