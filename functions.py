@@ -54,8 +54,17 @@ def prime_factoring(n):
 	# 		return i+1
 	# 	i += 6
 
+def xgcd(a, b): # same as extended_euclidean_algorithm
+	x, y,  u, v = 0, 1,  1, 0
+	while b != 0:
+		q = a // b
+		r = a % b
+		m = x - u * q
+		n = y - v * q
+		a,b, x,y, u,v = b,r, u,v, m,n
+	return a, x, y
 
-def extended_euclidean_algorithm(a, b):
+def extended_euclidean_algorithm(a, b): # same as xgcd
 	q = a // b
 	r = a % b
 	if r == 1:

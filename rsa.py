@@ -8,14 +8,27 @@ from functions import lcm, minmum_coprime, prime_factoring, extended_euclidean_a
 
 
 class RSA:
-	def __init__(self, p, q):
-		self.p = p
-		self.q = q
-		self.N = p * q
-		self.l = None # LCM of (p-1)*(q-1)
-		self.e = None
-		self.d = None
-		self.i = None
+	def __init__(self, *args): # pass either public key path or 2 prime numbers
+		if type(args[0]) == type(""):
+			self.load_public_key(args[0])
+			self.update_params_by_pubkey()
+		else:
+			if prime_factoring(args[0]) != args[0] or \
+			   prime_factoring(args[1]) != args[1]:
+				print("\n RSA argments must be either 2 prime numbers or path to public key")
+				exit()
+			self.p = args[0]
+			self.q = args[1]
+			self.N = self.p * self.q
+			self.l = None # LCM of (p-1)*(q-1)
+			self.e = None
+			self.d = None
+			self.i = None
+			# chinese remainder theorem for decryption computation efficiency
+			self.d1 = None
+			self.d2 = None
+			# chinese remainder theorem internal use for more efficiency
+			self.ce = None
 
 	@property
 	def params(self):
@@ -23,10 +36,14 @@ class RSA:
 		print(' (p)prime1:\t\t', self.p)
 		print(' (q)prime2:\t\t', self.q)
 		print(' (N)modulus:\t\t', self.N)
-		print(' (l)LCM:\t\t', self.l)
+		print(' (l)LCM:\t\t', self.l)           # lcm(p-1, q-1)
 		print(' (e)publicExponent:\t', self.e)
-		print(' (d)privateExponent:\t', self.d)
-		print(' (i):\t', self.i)
+		print(' (d)privateExponent:\t', self.d) # ≡ e^(-1) mod (p-1)*(q-1)
+		print(' (i)i*(p-1)(q-1)+1:\t', self.i)
+		print(' (d1)exponent1:\t\t', self.d1)   # d mod (p-1)
+		print(' (d2)exponent2:\t\t', self.d2)   # d mod (q-1)
+		print(' (ce)coefficient:\t', self.ce)   # q^(-1) mod p
+
 
 	@property
 	def pubkey(self):
@@ -58,16 +75,22 @@ class RSA:
 		self.i = indef_dict[phi] * -1 # e*d - i*phi = 1 => e*d = i*(p-1)(q-1) + 1
 		print(indef_dict.keys(), indef_dict.values())
 
+		self.d1 = self.d % (self.p-1)
+		self.d2 = self.d % (self.q-1)
+		self.ce = pow(self.q, self.p-2, self.p)
+
 
 	def encrypt(self, m):
 		if self.e is None:
 			self.calculate_params()
-		return m ** self.e % self.N
+		return pow(m, self.e, self.N)
+		# return m ** self.e % self.N
 
 	def decrypt(self, c):
 		if self.d is None:
 			self.calculate_params()
-		return c ** self.d % self.N
+		return pow(c, self.d, self.N)
+		# return c ** self.d % self.N
 
 
 	def load_public_key(self, file_path):
@@ -135,9 +158,9 @@ class RSA:
 		txt += '\nprivExp=INTEGER:' + str(self.d)
 		txt += '\np=INTEGER:' + str(self.p)
 		txt += '\nq=INTEGER:' + str(self.q)
-		txt += '\ne1=INTEGER:' + str(self.d % (self.p-1))
-		txt += '\ne2=INTEGER:' + str(self.d % (self.q-1))
-		txt += '\ncoeff=INTEGER:' + str(pow(self.q, self.p-2, self.p))
+		txt += '\ne1=INTEGER:' + str(self.d1)
+		txt += '\ne2=INTEGER:' + str(self.d2)
+		txt += '\ncoeff=INTEGER:' + str(self.ce)
 		txt += '\n'
 		
 		with open(file_asn, 'w') as f:
